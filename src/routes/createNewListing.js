@@ -1,11 +1,19 @@
 import { v4 as uuid } from "uuid";
+import * as admin from 'firebase-admin';
 import { db } from "../database";
 
 export const createNewListingRoute = {
     method: 'POST',
     path: '/api/listings',
     handler: async (req, res) => {
-        const userId = '12345';
+        const token = req.headers.authtoken;
+        const user = await admin.auth().verifyIdToken(token);
+        const userId = user.user_id;
+
+        if (user.user_id !== userId) {
+            throw Boom.unauthorized("User doesn't exist");
+        }
+
         const id = uuid();
         const { name = '', description = '', price = 0 } = req.payload;
         const views = 0;
